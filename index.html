@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Banned Words Checker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    textarea { width: 100%; height: 150px; margin-top: 10px; }
+    #output { margin-top: 20px; font-weight: bold; color: red; white-space: pre-wrap; }
+    input[type="file"] { margin-top: 10px; }
+    .highlight { background-color: yellow; font-weight: bold; }
+    em { font-size: 0.9em; color: red; }
+  </style>
+</head>
+<body>
+  <h2>🚫 Banned Words Checker</h2>
+
+  <p><strong>Tip:</strong> This tool includes a default banned word list below. Upload is optional.</p>
+
+  <label>Upload banned words list (Excel file, first column):</label><br>
+  <input type="file" id="fileInput" accept=".xlsx, .xls"><br>
+
+  <label for="textInput">Enter your content here:</label>
+  <textarea id="textInput" placeholder="Paste text here..."></textarea>
+
+  <button onclick="checkText()">Check for Banned Words</button>
+
+  <div id="output"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    let bannedWords = [
+  "Insecticidal", "Anti-toxic", "Anti-mildew", "waterproof", "dustproof", "antifouling", "preservatives", "sterilization",
+  "insecticide", "UV", "Antimicrobial", "Used to prevent", "Eliminate", "Repel or slow down any pest", "Anti-oxidation",
+  "Mildew proof", "Bacteriostatic", "Antibacterial", "Anti-virus", "filter air", "resist ultraviolet rays", "Disinfect",
+  "prevent the growth of bacteria", "inhibit the growth of bacteria", "antifungal", "allergens", "filters", "mites", "dust",
+  "insect repellent", "insects", "pests", "water filtration", "anti-mites", "inhibit-algae", "Sanitize-Blight", "Sterilize",
+  "Insect prevention", "Resistant for mosquitoes&ants", "Material: High-quality PVC", "Nontoxic", "Healthy",
+  "Environmental protection", "Quality: Non-Slip", "Anti-Fouling", "disinfect", "repel insects", "remove allergens",
+  "prevent", "bacteria", "antibacterial", "mildew", "resistant", "anti-flu", "ultraviolet", "germs", "bug",
+  "Anti-bacteria", "Stop-Microbe/Mildew", "drug", "antibiotic", "non-poisonous", "all natural", "mold", "anti",
+  "eco-friendly", "enviromental friendly", "moisture", "infection", "toxic", "hygience", "BPA-free", "micro-bio",
+  "non-injurious", "anti-bacterial vinyl", "repelient", "virus", "mosquitos", "protect", "chemical", "hypoallergenic",
+  "rat", "pest", "rodent", "mouse", "harmless", "Drugs narcotics Drugs", "Drugs Tools", "Anesthesia tranquilizers",
+  "Psychotropic Drugs", "Addictive drug", "Natural drugs", "Opium", "morphine", "heroin", "marijuana",
+  "Synthetic drugs ephedrine", "4-methylenedioxyphenyl-2-propanone", "1-phenyl-2-propanone 1--2- Heliotropin Safrole",
+  "Isosafrole", "Acetic oxide", "Rubik", "Steroid Ephedra", "Hydroxy imine Phenylacetate", "chloroform",
+  "methenyl trichloride", "trichlormethane", "diethyl ether", "aether", "Piperidine", "Toluene", "acetone",
+  "methyl ethyl ketone", "potassium permanganate", "sulphuric acid", "hydrochloric acid chlorhydric acid",
+  "Marijuana grow lights Explosive", "radiation emission", "Fluorine", "Fireworks", "Firecracker", "ignition",
+  "medicine", "medicament", "remedy", "chinese medicine", "Oral diet pills", "Diet pills", "Medical Devices",
+  "Beauty Equipment", "Cosmetic acupuncture", "Mercury", "Freon", "polyethylene terephthalate", "amazing", "best",
+  "cheap", "cheapest", "effective", "fastest", "good deal", "least", "most", "popular", "trending",
+  "Available now", "brand new", "current", "discounted", "just launched", "last chanc", "last minute", "lastest",
+  "limited time", "new", "on sale", "this week/month/year", "today", "2-3 day's shipping", "christmas sales",
+  "offer of the day", "congratulations on winning a prize", "no bills", "click for surprise", "get it for free",
+  "full refund", "if not satisfied, send it back", "unconditional guarantee with no limit", "lottery ticket",
+  "gun", "firearm", "rifle", "spear", "ammunition", "Bomb", "bullet", "pellet", "shot", "Arms", "weapon", "Air gun",
+  "air rifle", "Starting gun", "BB gun BB", "Paintball", "Gun Accessories", "Spear gun", "Fish fork",
+  "Electric shock equipment", "Pepper Spray", "crossbow", "bow", "financial securities", "Spring knife",
+  "Ultra-long knife", "knife", "Fighting Knife", "Military Knife", "Dagger", "poniard", "Bayonet", "Moat Swords",
+  "entrenchment Swords", "Boots knife", "Switchblade", "Butterfly knife", "Gravity knife", "Tri Tool",
+  "Belt buckle knife", "sword cane", "Darts", "Delta Dart", "Hand thorn", "Cuba rattan", "Claw cutter", "Long knife",
+  "blood reservoir", "Folding knife", "nunchakus", "Key stick", "Knuckleduster", "Baton ASP", "Mace",
+  "Rogues fork", "boomerang dart", "Nazi", "police uniform", "Police Badge", "Police equipment and products",
+  "handcuffs", "manacle", "cuff", "darby", "gyve", "anklet", "fetters", "fetter", "leg-iron", "riot shield",
+  "Riot Helmet", "Riot Suit", "Terrorist organizations", "Racial Discrimination", "porn porno pornographic",
+  "Obscene harlot", "Birth certificates", "passports", "visas", "driver's license", "ID card", "bug",
+  "listening-in device", "tapping device", "Hidden Listener", "Pinhole camera", "baton", "truncheon", "Body armor",
+  "Stun Gun", "Human organ", "Visceral haslet", "Animal fur", "Bear bile", "Cat and dog fur", "Signal jammers",
+  "Slot machine", "Satellite signal receiving device", "TV Stick", "Tobacco", "Cigar", "Cigarette",
+  "electronic cigarette", "Electronic cigarette liquid", "Cigarette paper", "Filter tips", "Cigarette tow",
+  "Smoke oil", "Liquid smoke", "Currency", "monetary", "Precious Metals", "Cultural relic", "historical relic",
+  "Bitcoin", "Pilot Uniforms", "Airport ground staff uniforms", "Train or subway staff uniforms",
+  "Public transportation safety manual", "Unlock Tool", "Synthetic Urine", "Health Food", "wine", "liquor",
+  "spirits", "alcohol", "guzzle", "food", "foodstuff", "grocery", "provisions", "paint", "oil colour",
+  "cover with paint", "lead-and-oil", "oil paint", "drikold", "dry ice", "lithium cell", "lithium battery",
+  "storage battery", "accumulator", "jar", "compressed gas", "Magnetic materials", "Ivory", "Artwork", "Coin",
+  "fake stamps", "Credit card", "TV decoder", "Radar Scanner", "ticket", "Unlocking device", "Coupon",
+  "Contact lenses", "Pacemaker", "Surgical Instruments", "Insecticide", "Stamp", "Plant", "vegetation",
+  "Ultrasonic testing equipment", "Fire extinguisher", "Fuse", "Smokescreen"
+];
+
+    const conditionalBrands = [
+      "Apple", "Nike", "Pattern", "Utopia Deals", "Carlyle", "Woot", "Zappos", "eSupplements",
+      "PremiumartsWhosale", "Orva", "VerSure", "Spreetail", "Bedsure"
+    ];
+
+    document.getElementById('fileInput').addEventListener('change', function(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        bannedWords = jsonData.map(row => row[0]).filter(Boolean).map(w => w.toString().toLowerCase().trim());
+        alert("Banned words loaded: " + bannedWords.length);
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+
+    function checkText() {
+      const inputText = document.getElementById('textInput').value;
+      let highlightedText = inputText;
+      let hits = [];
+
+      bannedWords.forEach(word => {
+        const pattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'gi');
+        if (pattern.test(highlightedText)) {
+          hits.push(word);
+          highlightedText = highlightedText.replace(pattern, '<span class="highlight">$&</span>');
+        }
+      });
+
+      conditionalBrands.forEach(brand => {
+        const pattern = new RegExp(`(?<!\\bfor\\s|\\bwith\\s)(\\b${escapeRegExp(brand)}\\b)`, 'gi');
+        if (pattern.test(highlightedText)) {
+          hits.push(`${brand} (品牌词必须加\"for\")`);
+          highlightedText = highlightedText.replace(pattern, '<span class="highlight">$1 <em>(品牌词必须加\"for\")</em></span>');
+        }
+      });
+
+      const result = hits.length
+        ? `⚠️ Detected banned phrases (${hits.length}):\n` + highlightedText
+        : "✅ No banned words found.";
+
+      document.getElementById('output').innerHTML = result;
+    }
+
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+    }
+  </script>
+</body>
+</html>
